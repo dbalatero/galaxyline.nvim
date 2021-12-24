@@ -21,7 +21,34 @@ local function get_nvim_lsp_diagnostic(diag_type)
     local count = 0
 
     for _, client in ipairs(active_clients) do
-       count = count + lsp.diagnostic.get_count(api.nvim_get_current_buf(),diag_type,client.id)
+      if vim.diagnostic then
+        -- vim 0.7 support
+        local severity = nil
+
+        if diag_type == 'Warning' then
+          severity = vim.diagnostic.severity.WARN
+        elseif diag_type == 'Error' then
+          severity = vim.diagnostic.severity.ERROR
+        elseif diag_type == 'Hint' then
+          severity = vim.diagnostic.severity.HINT
+        elseif diag_type == 'Info' then
+          severity = vim.diagnostic.severity.INFO
+        end
+
+        if diag_type then
+          diagnostics = vim.diagnostic.get(0, { ['severity'] = severity })
+
+          if diagnostics then
+            count = count + #diagnostics
+          end
+        end
+      else
+      -- Warning
+      -- Hint
+      -- Error
+       -- print(diag_type)
+        count = count + lsp.diagnostic.get_count(api.nvim_get_current_buf(), diag_type, client.id)
+      end
     end
 
     if count ~= 0 then return count .. ' ' end
